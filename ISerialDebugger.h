@@ -39,6 +39,7 @@ class ISerialDebugger
     protected:
     State * (*SetStateHandler)(char ID);
     public:
+    ISerialDebugger();
     ISerialDebugger(State * (*SetStateHandler)(char ID));
     virtual bool ReadExecuteSerialDebugCommand(FiKnight * machine);
     

@@ -1,6 +1,11 @@
 #include "fiKnight.h"
 #include "fiKnightSerialDebugger.h"
 
+
+FiKnight::FiKnight()
+{
+  
+}
 FiKnight::FiKnight(State *firstState, bool (*callback)(State *nextstate), State *(*onErrorCallback)(State *previousState))
 {
   this->firstState = firstState;

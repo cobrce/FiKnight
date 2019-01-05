@@ -1,8 +1,12 @@
 #include "fiKnightSerialDebugger.h"
 
-FiKnightSerialDebugger::FiKnightSerialDebugger(State* (*SetStateHandler)(byte ID)) : ISerialDebugger(SetStateHandler)
+FiKnightSerialDebugger::FiKnightSerialDebugger() : ISerialDebugger()
 {
-        
+
+}
+FiKnightSerialDebugger::FiKnightSerialDebugger(State* (*SetStateHandler)(char ID)) : ISerialDebugger(SetStateHandler)
+{
+      this->SetStateHandler = SetStateHandler;  
 }
 
 void FiKnightSerialDebugger::ExecuteSerialDebugCommand(FiKnight *machine, DebugMessage *message)
@@ -22,7 +26,7 @@ void FiKnightSerialDebugger::ExecuteSerialDebugCommand(FiKnight *machine, DebugM
         SendCurrentState(message->ID,machine);
         break;
     case set_state:
-        machine->SetCurrentState(this->SetStateHandler(((SetStateMessage*)message)->StateID));
+        machine->SetCurrentState(this->SetStateHandler(((GetSetStateMessage*)message)->StateID));
         break;
     case step:
         machine->step = true;

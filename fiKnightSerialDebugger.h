@@ -11,7 +11,7 @@ class FiKnightSerialDebugger : ISerialDebugger
     virtual void SendCurrentExecutionStatus(char ID,FiKnight * machine);
     virtual bool ReadExecuteSerialDebugCommand(FiKnight * machine);
     virtual void SendCurrentState(char ID,FiKnight * machine);
-    
+    FiKnightSerialDebugger();
     FiKnightSerialDebugger(State* (*SetStateHandler)(char ID));
     virtual void ExecuteSerialDebugCommand(FiKnight * machine,DebugMessage * message);
 };

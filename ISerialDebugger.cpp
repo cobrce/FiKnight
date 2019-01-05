@@ -1,5 +1,19 @@
+
 #include "ISerialDebugger.h"
 #include "fiKnight.h"
+
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#include "pins_arduino.h"
+#include "WConstants.h"
+#endif
+
+ISerialDebugger::ISerialDebugger()
+{
+    
+}
 
 ISerialDebugger::ISerialDebugger(State *(*SetStateHandler)(char ID))
 {
@@ -27,10 +41,10 @@ bool ISerialDebugger::ReadExecuteSerialDebugCommand(FiKnight *machine)
 void ISerialDebugger::SendCurrentExecutionStatus(char ID, FiKnight *machine)
 {
     DebugMessage message = {ID, current_execution_status, 1, machine->running, '-', '>'};
-    Serial.write(message, 6);
+    Serial.write((char*)&message, 6);
 }
 void ISerialDebugger::SendCurrentState(char ID, FiKnight *machine)
 {
     GetSetStateMessage message = {ID, current_state, 2, machine->CurrentStateID(), '-', '>'};
-    Serial.write(message, 7);
+    Serial.write((char*)&message, 7);
 }
