@@ -8,7 +8,7 @@ class State
     // not null
     int ID;
 
-    State();
+    // State();
     State(State *(*function)(),int ID);
     void SetFunction(State *(*function)());
     State *Run();

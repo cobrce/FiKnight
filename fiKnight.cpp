@@ -1,10 +1,16 @@
 #include "fiKnight.h"
 #include "fiKnightSerialDebugger.h"
 
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#include "pins_arduino.h"
+#include "WConstants.h"
+#endif
 
 FiKnight::FiKnight()
 {
-  
 }
 FiKnight::FiKnight(State *firstState, bool (*callback)(State *nextstate), State *(*onErrorCallback)(State *previousState))
 {
@@ -13,13 +19,15 @@ FiKnight::FiKnight(State *firstState, bool (*callback)(State *nextstate), State 
   this->callback = callback;
   this->onErrorCallback = onErrorCallback;
 }
-void FiKnight::SetSerialDebugger(ISerialDebugger *debugger)
+void FiKnight::SetSerialDebugger(FiKnightSerialDebugger *debugger)
 {
   this->debugger = debugger;
 }
 
 void FiKnight::MainLoop(bool paused)
 {
+  Serial.println("#Mainloop");
+  Serial.println(this->debugger ? "#debugger enabled" : "#debugger disabled");
   this->running = !paused;
   while (true)
   {
@@ -36,15 +44,16 @@ void FiKnight::MainLoop(bool paused)
       running = !step && callback(currentState);
     }
     step = false;
+    delay(500);
   }
 }
 
 int FiKnight::CurrentStateID()
 {
-  return this-> currentState->ID;
+  return this->currentState->ID;
 }
 
 void FiKnight::SetCurrentState(State *state)
 {
-  this -> currentState = state;
+  this->currentState = state;
 }

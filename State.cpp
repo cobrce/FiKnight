@@ -1,8 +1,8 @@
 #include "State.h"
 
-State::State()
-{
-}
+// State::State()
+// {
+// }
 State::State(State *(*function)(),int ID)
 {
     this->function = function;
@@ -15,5 +15,8 @@ void State::SetFunction(State *(*function)())
 
 State * State::Run()
 {
-    return this->function();
+    if (function)
+        return this->function();
+    else
+        return this;
 }
