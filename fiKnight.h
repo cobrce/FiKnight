@@ -23,6 +23,7 @@ class FiKnight
     bool (*callback)(State *nextstate);
     State * (*onErrorCallback)(State *previousState);
 
+    void CommmonConstructor(State *firstState, bool (*callback)(State *nextstate), State * (*onErrorCallback)(State *previousState));
 
   public:
     bool step;
@@ -31,6 +32,7 @@ class FiKnight
     // callback function is the function that decides wether continue execution or not
     // on error callback is a function called when currentstate::Run doesn't give the next state to execute, this function should return the next state, if not, the execution is aborted
     FiKnight(State *firstState, bool (*callback)(State *nextstate), State * (*onErrorCallback)(State *previousState));
+    FiKnight(State *firstState, bool (*callback)(State *nextstate), State *(*onErrorCallback)(State *previousState),FiKnightSerialDebugger * debugger);
     void SetSerialDebugger(FiKnightSerialDebugger * debugger);
     //should run endlessly unless :
     //  • no next state is provided from both the currentstate::Run and the onErrorCallBack

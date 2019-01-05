@@ -45,12 +45,15 @@ class FiKnightSerialDebugger
     private:
     long int now;
     State * (*SetStateHandler)(byte ID);
+    void (*SerialReceivedHandler)(int size,byte* data);
     public:
     FiKnightSerialDebugger();
     FiKnightSerialDebugger(State* (*SetStateHandler)(byte ID));
+    FiKnightSerialDebugger(State* (*SetStateHandler)(byte ID),void (*SerialReceivedHandler)(int size,byte* data));
     virtual bool ReadExecuteSerialDebugCommand(FiKnight * machine);
     virtual void SendCurrentExecutionStatus(byte ID,FiKnight * machine);
     virtual void SendCurrentState(byte ID,FiKnight * machine);
     virtual void ExecuteSerialDebugCommand(FiKnight * machine,DebugMessage * message);
+    virtual void SetSerialReceivedHandler(void (*SerialReceivedHandler)(int size,byte* data));
 };
 #endif

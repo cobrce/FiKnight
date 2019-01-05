@@ -1,7 +1,6 @@
 #include <fiKnight.h>
 #include <fiKnightSerialDebugger.h>
 
-
 // define functions
 State * StateFunction();
 bool AlwaysTrue(State * nextstate);
@@ -15,13 +14,21 @@ FiKnight machine = FiKnight(&first,AlwaysTrue,OnErrorCallback);
 FiKnightSerialDebugger debugger = FiKnightSerialDebugger(SetStateHandler);
 
 void SetupMachine()
-{
+{	
+  // set the debugger 
   machine.SetSerialDebugger(&debugger);
+  // since the debugger uses Serial for communication
+  // it's advised not to read serial directly but use
+  // a SerialReceivedHandler
+  // hint : to make serial communication faster, always 
+  // terminate your data with '>'
+  debugger.SetSerialReceivedHandler(SerialDataReceivedHandler);
 }
 
 void setup() {
   Serial.begin(9600);
   pinMode(LED_BUILTIN,OUTPUT);  
+  pinMode(2,OUTPUT);
   SetupMachine();
 };
 
@@ -57,4 +64,13 @@ State * SetStateHandler(int ID)
     return &second;
   else
     return &first;
+}
+
+void SerialDataReceivedHandler(int size, byte * data)
+{
+  if (size > 0 && data[0] == 'T')
+  {
+    Serial.println("# Toggling Pin 2");
+    digitalWrite(2,1 - digitalRead(2));
+  }
 }

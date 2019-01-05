@@ -13,9 +13,16 @@ FiKnightSerialDebugger::FiKnightSerialDebugger()
 {
 
 }
+
 FiKnightSerialDebugger::FiKnightSerialDebugger(State* (*SetStateHandler)(byte ID))
 {
-      this->SetStateHandler = SetStateHandler;  
+    this->SetStateHandler = SetStateHandler;  
+}
+
+FiKnightSerialDebugger::FiKnightSerialDebugger(State* (*SetStateHandler)(byte ID),void (*SerialReceivedHandler)(int size,byte* data))
+{
+    this->SerialReceivedHandler = SerialReceivedHandler;
+    this->SetSerialReceivedHandler(SerialReceivedHandler);
 }
 
 bool FiKnightSerialDebugger::ReadExecuteSerialDebugCommand(FiKnight *machine)
@@ -32,11 +39,20 @@ bool FiKnightSerialDebugger::ReadExecuteSerialDebugCommand(FiKnight *machine)
         int len = Serial.readBytesUntil('>', data, 104);
         if (len < 104 && ((char)data[len - 1]) == '-')
         {
-            ExecuteSerialDebugCommand(machine, (DebugMessage *)&data[0]);
+            this->ExecuteSerialDebugCommand(machine, (DebugMessage *)&data[0]);
             return true;
+        }
+        else if (this->SerialReceivedHandler)
+        {
+            this->SerialReceivedHandler(len,&data[0]);
         }
     }
     return false;
+}
+
+void FiKnightSerialDebugger::SetSerialReceivedHandler(void (*SerialReceivedHandler)(int size,byte* data))
+{
+    this->SerialReceivedHandler = SerialReceivedHandler;
 }
 
 void FiKnightSerialDebugger::SendCurrentExecutionStatus(byte ID, FiKnight *machine)

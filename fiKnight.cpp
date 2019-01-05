@@ -14,12 +14,22 @@ FiKnight::FiKnight()
 }
 FiKnight::FiKnight(State *firstState, bool (*callback)(State *nextstate), State *(*onErrorCallback)(State *previousState))
 {
+  this->CommmonConstructor(firstState,callback,onErrorCallback);
+}
+
+FiKnight::FiKnight(State *firstState, bool (*callback)(State *nextstate), State *(*onErrorCallback)(State *previousState),FiKnightSerialDebugger * debugger)
+{
+  this->CommmonConstructor(firstState,callback,onErrorCallback);
+  this->SetSerialDebugger(debugger);
+}
+void FiKnight::CommmonConstructor(State *firstState, bool (*callback)(State *nextstate), State * (*onErrorCallback)(State *previousState))
+{
   this->firstState = firstState;
   this->currentState = firstState;
   this->callback = callback;
   this->onErrorCallback = onErrorCallback;
 }
-void FiKnight::SetSerialDebugger(FiKnightSerialDebugger *debugger)
+void FiKnight::SetSerialDebugger(FiKnightSerialDebugger * debugger)
 {
   this->debugger = debugger;
 }
