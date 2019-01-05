@@ -1,0 +1,2 @@
+in the directory containing .elf file open a terminal and execute:
+arduino_installation_dir\hardware\tools\avr\bin\avr-objdump -h -S *.elf  1>file.lst

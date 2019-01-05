@@ -19,6 +19,7 @@ enum Commands : byte
     current_state = 'C',
     set_state = 'S',
     step = '+',
+    dump_memory= 'D',
 };
 
 
@@ -40,12 +41,26 @@ struct GetSetStateMessage
     byte Sig;
     byte End;
 };
+
+struct DumpMemoryMessage
+{
+    byte ID;
+    Commands command;
+    byte ExtraDataLen;
+    int memAddress;
+    int memSize;
+    byte Dump[96];
+    byte Sig;
+    byte End;
+};
+
 class FiKnightSerialDebugger
 {
     private:
     long int now;
     State * (*SetStateHandler)(byte ID);
     void (*SerialReceivedHandler)(int size,byte* data);
+    void ReadMemory(DumpMemoryMessage * message);
     public:
     FiKnightSerialDebugger();
     FiKnightSerialDebugger(State* (*SetStateHandler)(byte ID));

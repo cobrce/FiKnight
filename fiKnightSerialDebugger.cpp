@@ -27,7 +27,7 @@ FiKnightSerialDebugger::FiKnightSerialDebugger(State* (*SetStateHandler)(byte ID
 
 bool FiKnightSerialDebugger::ReadExecuteSerialDebugCommand(FiKnight *machine)
 {
-    byte data[104];
+    byte data[105];
     if (!now || (millis() - now) >=2000)
     {
         now = millis();
@@ -66,6 +66,23 @@ void FiKnightSerialDebugger::SendCurrentState(byte ID, FiKnight *machine)
     Serial.write((byte*)&message, 7);
 }
 
+void FiKnightSerialDebugger::ReadMemory(DumpMemoryMessage * message)
+{
+    if (message->memSize > 96)
+        message->memSize = 96;
+    
+    byte * ptr = message->memAddress;
+    byte i =0;
+    for (;i< message->memSize;i++)
+    {
+        message->Dump[i] = ptr[i];
+    }
+    message->Dump[i] = '-';
+    message->Dump[i+1] = '\n';
+    message->ExtraDataLen = i+4;
+    Serial.write((byte*)message,i+9);
+}
+
 void FiKnightSerialDebugger::ExecuteSerialDebugCommand(FiKnight *machine, DebugMessage *message)
 {
     switch (message->Command)
@@ -94,5 +111,9 @@ void FiKnightSerialDebugger::ExecuteSerialDebugCommand(FiKnight *machine, DebugM
         Serial.println("#cmd step");
         machine->step = true;
         break;
+    case dump_memory:
+        Serial.println("#cmd dump");
+        if ((message)->ExtraDataLen == 4)
+            this->ReadMemory((DumpMemoryMessage*)message);
     };
 }
