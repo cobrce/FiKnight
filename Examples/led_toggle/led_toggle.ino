@@ -6,30 +6,24 @@ State * StateFunction();
 bool AlwaysTrue(State * nextstate);
 State * OnErrorCallback(State * previousstate);
 State * SetStateHandler(int ID);
+void SerialDataReceivedHandler(int size, byte * data);
 
 // define machine objects
 State first = State(StateFunction,1);
 State second = State(StateFunction,2);
-FiKnight machine = FiKnight(&first,AlwaysTrue,OnErrorCallback);
-FiKnightSerialDebugger debugger = FiKnightSerialDebugger(SetStateHandler);
 
-void SetupMachine()
-{	
-  // set the debugger 
-  machine.SetSerialDebugger(&debugger);
-  // since the debugger uses Serial for communication
-  // it's advised not to read serial directly but use
-  // a SerialReceivedHandler
-  // hint : to make serial communication faster, always 
-  // terminate your data with '>'
-  debugger.SetSerialReceivedHandler(SerialDataReceivedHandler);
-}
+// Reading serial data directly disturbs the functioning of FiKnightSerialDebugger
+// Instead a SerialDataReceivedHandler should be used, this way when an unknown
+// message is received it's sent to the SerialDataReceivedHandler
+FiKnightSerialDebugger debugger = FiKnightSerialDebugger(SetStateHandler,SerialDataReceivedHandler);
+FiKnight machine = FiKnight(&first,AlwaysTrue,OnErrorCallback,&debugger);
+
 
 void setup() {
   Serial.begin(9600);
   pinMode(LED_BUILTIN,OUTPUT);  
+  // sending T> from serial monitor with toggle this pin
   pinMode(2,OUTPUT);
-  SetupMachine();
 };
 
 void loop() {
@@ -39,7 +33,7 @@ void loop() {
 long int previous;
 State * StateFunction()
 {
-  if (!previous|| (millis() - previous >=500))
+  if (!previous || (millis() - previous >=500))
   {
     previous = millis();
     digitalWrite(LED_BUILTIN,not digitalRead(LED_BUILTIN));
