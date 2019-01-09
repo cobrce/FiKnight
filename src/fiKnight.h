@@ -28,6 +28,7 @@ class FiKnight
   public:
     bool step;
     bool running;
+    bool notifyOnStateChange = true;
     FiKnight();
     // callback function is the function that decides wether continue execution or not
     // on error callback is a function called when currentstate::Run doesn't give the next state to execute, this function should return the next state, if not, the execution is aborted

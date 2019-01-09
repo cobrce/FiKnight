@@ -32,7 +32,7 @@ bool FiKnightSerialDebugger::ReadExecuteSerialDebugCommand(FiKnight *machine)
     {
         now = millis();
         SendCurrentExecutionStatus(0xff, machine);
-        SendCurrentState(0xff, machine);
+        // SendCurrentState(0xff, machine); // will be done by fiKnight
     }
     if (Serial.available() > 0)
     {

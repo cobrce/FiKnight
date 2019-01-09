@@ -61,6 +61,7 @@ class FiKnightSerialDebugger
     State * (*SetStateHandler)(byte ID);
     void (*SerialReceivedHandler)(int size,byte* data);
     void ReadMemory(DumpMemoryMessage * message);
+    
     public:
     FiKnightSerialDebugger();
     FiKnightSerialDebugger(State* (*SetStateHandler)(byte ID));

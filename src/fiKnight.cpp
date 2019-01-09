@@ -47,10 +47,17 @@ void FiKnight::MainLoop(bool paused)
     {
       previousState = currentState;
       currentState = currentState->Run();
+
       if (!currentState)
         currentState = this->onErrorCallback(previousState);
+
       if (!currentState)
         running = false;
+
+      if (notifyOnStateChange &&
+          currentState != previousState &&
+          debugger)
+        debugger->SendCurrentState(0xff,this);
       running = !step && callback(currentState);
     }
     step = false;
