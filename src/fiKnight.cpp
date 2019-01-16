@@ -39,7 +39,7 @@ void FiKnight::MainLoop(bool paused, bool infinite)
     //   Serial.println("#Mainloop");
     //   Serial.println(this->debugger ? "#debugger enabled" : "#debugger disabled");
     this->running = !paused;
-    while (infinite)
+    while (true)
     {
         if (this->debugger)
             this->debugger->ReadExecuteSerialDebugCommand(this);
@@ -61,8 +61,9 @@ void FiKnight::MainLoop(bool paused, bool infinite)
             running = !step && callback(currentState);
         }
         step = false;
-        if (infinite)
-            delay(100);
+        if (!infinite)
+            break;
+        delay(100);
     }
 }
 

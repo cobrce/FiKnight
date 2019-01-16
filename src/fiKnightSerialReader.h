@@ -1,5 +1,7 @@
-#include "fiKnightSerialDebugger.h"
+#ifndef FIKNIGHTSERIALREADER_H_
+#define FIKNIGHTSERIALREADER_H_
 
+#include "fiKnightSerialDebugger.h"
 
 class FiKnightSerialReader : public FiKnightSerialDebugger
 {
@@ -7,3 +9,4 @@ class FiKnightSerialReader : public FiKnightSerialDebugger
     FiKnightSerialReader(void (*SerialReceivedHandler)(int size, byte *data));
     virtual void ExecuteSerialDebugCommand(FiKnight *machine, DebugMessage *message) override;
 };
+#endif
