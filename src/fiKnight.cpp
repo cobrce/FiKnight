@@ -14,63 +14,64 @@ FiKnight::FiKnight()
 }
 FiKnight::FiKnight(State *firstState, bool (*callback)(State *nextstate), State *(*onErrorCallback)(State *previousState))
 {
-  this->CommmonConstructor(firstState,callback,onErrorCallback);
+    this->CommmonConstructor(firstState, callback, onErrorCallback);
 }
 
-FiKnight::FiKnight(State *firstState, bool (*callback)(State *nextstate), State *(*onErrorCallback)(State *previousState),FiKnightSerialDebugger * debugger)
+FiKnight::FiKnight(State *firstState, bool (*callback)(State *nextstate), State *(*onErrorCallback)(State *previousState), FiKnightSerialDebugger *debugger)
 {
-  this->CommmonConstructor(firstState,callback,onErrorCallback);
-  this->SetSerialDebugger(debugger);
+    this->CommmonConstructor(firstState, callback, onErrorCallback);
+    this->SetSerialDebugger(debugger);
 }
-void FiKnight::CommmonConstructor(State *firstState, bool (*callback)(State *nextstate), State * (*onErrorCallback)(State *previousState))
+void FiKnight::CommmonConstructor(State *firstState, bool (*callback)(State *nextstate), State *(*onErrorCallback)(State *previousState))
 {
-  this->firstState = firstState;
-  this->currentState = firstState;
-  this->callback = callback;
-  this->onErrorCallback = onErrorCallback;
+    this->firstState = firstState;
+    this->currentState = firstState;
+    this->callback = callback;
+    this->onErrorCallback = onErrorCallback;
 }
-void FiKnight::SetSerialDebugger(FiKnightSerialDebugger * debugger)
+void FiKnight::SetSerialDebugger(FiKnightSerialDebugger *debugger)
 {
-  this->debugger = debugger;
+    this->debugger = debugger;
 }
 
-void FiKnight::MainLoop(bool paused)
+void FiKnight::MainLoop(bool paused, bool infinite)
 {
-  Serial.println("#Mainloop");
-  Serial.println(this->debugger ? "#debugger enabled" : "#debugger disabled");
-  this->running = !paused;
-  while (true)
-  {
-    if (this->debugger)
-      this->debugger->ReadExecuteSerialDebugCommand(this);
-    if (currentState && (running || step))
+    //   Serial.println("#Mainloop");
+    //   Serial.println(this->debugger ? "#debugger enabled" : "#debugger disabled");
+    this->running = !paused;
+    while (infinite)
     {
-      previousState = currentState;
-      currentState = currentState->Run();
+        if (this->debugger)
+            this->debugger->ReadExecuteSerialDebugCommand(this);
+        if (currentState && (running || step))
+        {
+            previousState = currentState;
+            currentState = currentState->Run();
 
-      if (!currentState)
-        currentState = this->onErrorCallback(previousState);
+            if (!currentState)
+                currentState = this->onErrorCallback(previousState);
 
-      if (!currentState)
-        running = false;
+            if (!currentState)
+                running = false;
 
-      if (notifyOnStateChange &&
-          currentState != previousState &&
-          debugger)
-        debugger->SendCurrentState(0xff,this);
-      running = !step && callback(currentState);
+            if (notifyOnStateChange &&
+                currentState != previousState &&
+                debugger)
+                debugger->SendCurrentState(0xff, this);
+            running = !step && callback(currentState);
+        }
+        step = false;
+        if (infinite)
+            delay(100);
     }
-    step = false;
-    delay(500);
-  }
 }
 
 int FiKnight::CurrentStateID()
 {
-  return this->currentState->ID;
+    return this->currentState->ID;
 }
 
 void FiKnight::SetCurrentState(State *state)
 {
-  this->currentState = state;
+    this->currentState = state;
 }

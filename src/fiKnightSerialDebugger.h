@@ -19,9 +19,8 @@ enum Commands : byte
     current_state = 'C',
     set_state = 'S',
     step = '+',
-    dump_memory= 'D',
+    dump_memory = 'D',
 };
-
 
 struct DebugMessage
 {
@@ -56,20 +55,21 @@ struct DumpMemoryMessage
 
 class FiKnightSerialDebugger
 {
-    private:
+  protected:
     long int now;
-    State * (*SetStateHandler)(byte ID);
-    void (*SerialReceivedHandler)(int size,byte* data);
-    void ReadMemory(DumpMemoryMessage * message);
-    
-    public:
+    State *(*SetStateHandler)(byte ID);
+    void (*SerialReceivedHandler)(int size, byte *data);
+    void ReadMemory(DumpMemoryMessage *message);
+
+  public:
+    int notificationInterval = 2000;
     FiKnightSerialDebugger();
-    FiKnightSerialDebugger(State* (*SetStateHandler)(byte ID));
-    FiKnightSerialDebugger(State* (*SetStateHandler)(byte ID),void (*SerialReceivedHandler)(int size,byte* data));
-    virtual bool ReadExecuteSerialDebugCommand(FiKnight * machine);
-    virtual void SendCurrentExecutionStatus(byte ID,FiKnight * machine);
-    virtual void SendCurrentState(byte ID,FiKnight * machine);
-    virtual void ExecuteSerialDebugCommand(FiKnight * machine,DebugMessage * message);
-    virtual void SetSerialReceivedHandler(void (*SerialReceivedHandler)(int size,byte* data));
+    FiKnightSerialDebugger(State *(*SetStateHandler)(byte ID));
+    FiKnightSerialDebugger(State *(*SetStateHandler)(byte ID), void (*SerialReceivedHandler)(int size, byte *data));
+    virtual bool ReadExecuteSerialDebugCommand(FiKnight *machine);
+    virtual void SendCurrentExecutionStatus(byte ID, FiKnight *machine);
+    virtual void SendCurrentState(byte ID, FiKnight *machine);
+    virtual void ExecuteSerialDebugCommand(FiKnight *machine, DebugMessage *message);
+    virtual void SetSerialReceivedHandler(void (*SerialReceivedHandler)(int size, byte *data));
 };
 #endif
