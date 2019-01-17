@@ -9,6 +9,7 @@
 #include "WConstants.h"
 #endif
 class FiKnight;
+#include "config.h"
 #include "fiKnight.h"
 
 enum Commands : byte
@@ -57,19 +58,28 @@ class FiKnightSerialDebugger
 {
   protected:
     long int now;
-    State *(*SetStateHandler)(byte ID);
     void (*SerialReceivedHandler)(int size, byte *data);
+    #if defined(INCLUDE_DEBUG_FUNCTION) || defined(EXECUTE_DEBUG_COMMANDS)
+    State *(*SetStateHandler)(byte ID);
     void ReadMemory(DumpMemoryMessage *message);
+    #endif
 
   public:
-    int notificationInterval = 2000;
     FiKnightSerialDebugger();
+    FiKnightSerialDebugger(void (*SerialReceivedHandler)(int size, byte *data));
+    
+    #if defined(INCLUDE_DEBUG_FUNCTION) || defined(EXECUTE_DEBUG_COMMANDS) || defined(NOTIFY_ON_STATE_CHANGE)
+    void SendCurrentState(byte ID, FiKnight *machine);
+    #endif
+
+    #if defined(INCLUDE_DEBUG_FUNCTION) || defined(EXECUTE_DEBUG_COMMANDS)
     FiKnightSerialDebugger(State *(*SetStateHandler)(byte ID));
     FiKnightSerialDebugger(State *(*SetStateHandler)(byte ID), void (*SerialReceivedHandler)(int size, byte *data));
-    virtual bool ReadExecuteSerialDebugCommand(FiKnight *machine);
-    virtual void SendCurrentExecutionStatus(byte ID, FiKnight *machine);
-    virtual void SendCurrentState(byte ID, FiKnight *machine);
-    virtual void ExecuteSerialDebugCommand(FiKnight *machine, DebugMessage *message);
-    virtual void SetSerialReceivedHandler(void (*SerialReceivedHandler)(int size, byte *data));
+    void SendCurrentExecutionStatus(byte ID, FiKnight *machine);
+    void ExecuteSerialDebugCommand(FiKnight *machine, DebugMessage *message);
+    #endif
+
+    bool ReadExecuteSerialDebugCommand(FiKnight *machine);
+    void SetSerialReceivedHandler(void (*SerialReceivedHandler)(int size, byte *data));
 };
 #endif

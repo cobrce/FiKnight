@@ -1,3 +1,4 @@
+#include "config.h"
 #include "fiKnightSerialDebugger.h"
 #include "fiKnight.h"
 
@@ -13,6 +14,12 @@ FiKnightSerialDebugger::FiKnightSerialDebugger()
 {
 }
 
+FiKnightSerialDebugger::FiKnightSerialDebugger(void (*SerialReceivedHandler)(int size, byte *data))
+{
+    this->SetSerialReceivedHandler(SerialReceivedHandler);
+}
+
+#if defined(INCLUDE_DEBUG_FUNCTION) || defined(EXECUTE_DEBUG_COMMANDS)
 FiKnightSerialDebugger::FiKnightSerialDebugger(State *(*SetStateHandler)(byte ID))
 {
     this->SetStateHandler = SetStateHandler;
@@ -23,30 +30,33 @@ FiKnightSerialDebugger::FiKnightSerialDebugger(State *(*SetStateHandler)(byte ID
     this->SerialReceivedHandler = SerialReceivedHandler;
     this->SetSerialReceivedHandler(SerialReceivedHandler);
 }
+#endif
 
 bool FiKnightSerialDebugger::ReadExecuteSerialDebugCommand(FiKnight *machine)
 {
     byte data[105];
 
-    if (notificationInterval != -1)
+    #ifdef NOTIFY_EXECUTION_STATE
+    if (!now || (millis() - now) >= NOTIFICATION_INTERVAL)
     {
-        if (!now || (millis() - now) >= notificationInterval)
-        {
-            now = millis();
-            SendCurrentExecutionStatus(0xff, machine);
-            // SendCurrentState(0xff, machine); // will be done by fiKnight
-        }
+        now = millis();
+        SendCurrentExecutionStatus(0xff, machine);
+        // SendCurrentState(0xff, machine); // will be done by fiKnight
     }
-
+    #endif
     if (Serial.available() > 0)
     {
         int len = Serial.readBytesUntil('>', data, 104);
+        #if defined(FILTER_DEBUG_COMMANDS) || defined(EXECUTE_DEBUG_COMMANDS)
         if (len < 104 && ((char)data[len - 1]) == '-')
         {
+            #ifdef EXECUTE_DEBUG_COMMANDS
             this->ExecuteSerialDebugCommand(machine, (DebugMessage *)&data[0]);
+            #endif
             return true;
         }
         else if (this->SerialReceivedHandler)
+        #endif
         {
             this->SerialReceivedHandler(len, &data[0]);
         }
@@ -59,11 +69,7 @@ void FiKnightSerialDebugger::SetSerialReceivedHandler(void (*SerialReceivedHandl
     this->SerialReceivedHandler = SerialReceivedHandler;
 }
 
-void FiKnightSerialDebugger::SendCurrentExecutionStatus(byte ID, FiKnight *machine)
-{
-    DebugMessage message = {ID, current_execution_status, 1, machine->running, '-', '\n'};
-    Serial.write((byte *)&message, 6);
-}
+#if defined(INCLUDE_DEBUG_FUNCTION) || defined(EXECUTE_DEBUG_COMMANDS) || defined(NOTIFY_ON_STATE_CHANGE)
 void FiKnightSerialDebugger::SendCurrentState(byte ID, FiKnight *machine)
 {
     GetSetStateMessage message = {
@@ -76,7 +82,15 @@ void FiKnightSerialDebugger::SendCurrentState(byte ID, FiKnight *machine)
     };
     Serial.write((byte *)&message, 7);
 }
+#endif
 
+#if defined(INCLUDE_DEBUG_FUNCTION) || defined(EXECUTE_DEBUG_COMMANDS)
+
+void FiKnightSerialDebugger::SendCurrentExecutionStatus(byte ID, FiKnight *machine)
+{
+    DebugMessage message = {ID, current_execution_status, 1, machine->running, '-', '\n'};
+    Serial.write((byte *)&message, 6);
+}
 void FiKnightSerialDebugger::ReadMemory(DumpMemoryMessage *message)
 {
     if (message->memSize > 96)
@@ -128,3 +142,4 @@ void FiKnightSerialDebugger::ExecuteSerialDebugCommand(FiKnight *machine, DebugM
             this->ReadMemory((DumpMemoryMessage *)message);
     };
 }
+#endif

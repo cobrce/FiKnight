@@ -1,6 +1,25 @@
+/// this is the example of how to use FiKnight library
+/// you notice the use of "#ifdef USE_PRODUCTION_CONFIG",
+/// this is token (un)defined in config.h (in the same
+/// directory of the library), it's purpose is to include/remove
+/// functions and variables depending on wether you are wrtining
+/// a debug version of production version of the program because : 
+/// - in debug you can command the program to run,pause,get/set state,
+///   read memory...etc
+/// - in production the debugger is only used to filter serial data
+///   and send non command data to the SerialDataReceivedHandler
+///
+/// Q : why using #define/#undef instead of parameters:
+/// A : memory
+/// Q : why keep using a debugger if it doesn't debug?
+/// A : if the debugger is removed entirely, the way how serial data
+///     are received should be rewritten, unless no debugger was used
+///     and the serial data are already read directly
+
 #include <fiKnight.h>
-#include <fiKnightSerialReader.h>
 #include <fiKnightSerialDebugger.h>
+
+
 
 // define functions
 State *StateFunction();
@@ -14,37 +33,32 @@ State first = State(StateFunction, 1);
 State second = State(StateFunction, 2);
 
 // Reading serial data directly disturbs the functioning of FiKnightSerialDebugger
-// Instead a SerialDataReceivedHandler should be used, this way when an unknown
-// message is received it's sent to the SerialDataReceivedHandler
-
-#ifdef DEBUG
-FiKnightSerialDebugger debugger = FiKnightSerialDebugger(SetStateHandler, SerialDataReceivedHandler);
+#ifdef USE_PRODUCTION_CONFIG
+FiKnightSerialDebugger debugger = FiKnightSerialDebugger(SerialDataReceivedHandler);
 #else
-FiKnightSerialReader debugger = FiKnightSerialReader(SerialDataReceivedHandler);
+FiKnightSerialDebugger debugger = FiKnightSerialDebugger(SetStateHandler, SerialDataReceivedHandler);
 #endif
+
 FiKnight machine = FiKnight(&first, AlwaysTrue, OnErrorCallback, &debugger);
 
 void setup()
 {
     Serial.begin(9600);
     pinMode(LED_BUILTIN, OUTPUT);
-    // sending "T>"" from serial monitor with toggle this pin
+    // sending "T>"" from serial monitor will toggle this pin
     pinMode(2, OUTPUT);
-
-    #ifndef DEBUG // if debug disabled
-    machine.notifyOnStateChange = false; // disable sending current state ID
-    debugger.notificationInterval = -1; //  dsiable sending CurrentExecutionStatus (Running/Paused)
-    #endif
 };
 
 void loop()
 {
-    #ifdef DEBUG
-        #define PAUSED true
-    #else
+    #ifdef USE_PRODUCTION_CONFIG
         #define PAUSED false
+    #else
+        #define PAUSED true
     #endif
-
+    // if debug is disabled and MainLoop is called with paused=true,
+    // there is noway to make it continue, unless you modify config.h
+    // and you undef "INFINITE_MAIN_LOOP" 
     machine.MainLoop(PAUSED);
 }
 

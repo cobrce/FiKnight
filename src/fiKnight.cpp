@@ -1,3 +1,4 @@
+#include "config.h"
 #include "fiKnight.h"
 #include "fiKnightSerialDebugger.h"
 
@@ -24,7 +25,6 @@ FiKnight::FiKnight(State *firstState, bool (*callback)(State *nextstate), State 
 }
 void FiKnight::CommmonConstructor(State *firstState, bool (*callback)(State *nextstate), State *(*onErrorCallback)(State *previousState))
 {
-    this->firstState = firstState;
     this->currentState = firstState;
     this->callback = callback;
     this->onErrorCallback = onErrorCallback;
@@ -34,11 +34,12 @@ void FiKnight::SetSerialDebugger(FiKnightSerialDebugger *debugger)
     this->debugger = debugger;
 }
 
-void FiKnight::MainLoop(bool paused, bool infinite)
+void FiKnight::MainLoop(bool paused)
 {
     //   Serial.println("#Mainloop");
     //   Serial.println(this->debugger ? "#debugger enabled" : "#debugger disabled");
     this->running = !paused;
+    State *previousState;
     while (true)
     {
         if (this->debugger)
@@ -47,23 +48,26 @@ void FiKnight::MainLoop(bool paused, bool infinite)
         {
             previousState = currentState;
             currentState = currentState->Run();
-
+            
             if (!currentState)
                 currentState = this->onErrorCallback(previousState);
 
             if (!currentState)
                 running = false;
 
-            if (notifyOnStateChange &&
-                currentState != previousState &&
+            #ifdef NOTIFY_ON_STATE_CHANGE
+            if (currentState != previousState &&
                 debugger)
                 debugger->SendCurrentState(0xff, this);
+            #endif
             running = !step && callback(currentState);
         }
         step = false;
-        if (!infinite)
+        #ifndef INFINITE_MAIN_LOOP
             break;
-        delay(100);
+        #else
+        delay(MAIN_LOOP_DELAY);
+        #endif
     }
 }
 
