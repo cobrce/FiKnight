@@ -21,6 +21,7 @@ enum Commands : byte
     set_state = 'S',
     step = '+',
     dump_memory = 'D',
+    read_IO = 'H',
 };
 
 struct DebugMessage
@@ -54,6 +55,28 @@ struct DumpMemoryMessage
     byte End;
 };
 
+struct ReadIOMessage
+{
+    byte ID;
+    const Commands read_IO;
+    byte ExtraDataLen;
+    byte _PORTA;
+    byte _PORTB;
+    byte _PORTC;
+    byte _PORTD;
+    byte _PINA;
+    byte _PINB;
+    byte _PINC;
+    byte _PIND;
+    byte _DDRA;
+    byte _DDRB;
+    byte _DDRC;
+    byte _DDRD;
+    byte Sig;
+    byte End;
+
+};
+
 class FiKnightSerialDebugger
 {
   protected:
@@ -62,6 +85,7 @@ class FiKnightSerialDebugger
     #if defined(INCLUDE_DEBUG_FUNCTION) || defined(EXECUTE_DEBUG_COMMANDS)
     State *(*SetStateHandler)(byte ID);
     void ReadMemory(DumpMemoryMessage *message);
+    void SendIoState(byte ID);
     #endif
 
   public:

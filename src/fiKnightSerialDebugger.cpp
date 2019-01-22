@@ -91,21 +91,26 @@ void FiKnightSerialDebugger::SendCurrentExecutionStatus(byte ID, FiKnight *machi
     DebugMessage message = {ID, current_execution_status, 1, machine->running, '-', '\n'};
     Serial.write((byte *)&message, 6);
 }
-void FiKnightSerialDebugger::ReadMemory(DumpMemoryMessage *message)
+void FiKnightSerialDebugger::ReadMemory(DumpMemoryMessage *msg)
 {
-    if (message->memSize > 96)
-        message->memSize = 96;
+    byte i;
+    DumpMemoryMessage message;
 
-    byte *ptr = message->memAddress;
-    byte i = 0;
-    for (; i < message->memSize; i++)
+    for (i = 0;i < 7;i++ )
+        ((byte *)(&message))[i] = ((byte*)msg)[i];
+
+    if (message.memSize > 96)
+        message.memSize = 96;
+
+    byte *ptr = message.memAddress;
+    for (i = 0; i < message.memSize; i++)
     {
-        message->Dump[i] = ptr[i];
+        message.Dump[i] = ptr[i];
     }
-    message->Dump[i] = '-';
-    message->Dump[i + 1] = '\n';
-    message->ExtraDataLen = i + 4;
-    Serial.write((byte *)message, i + 9);
+    message.Dump[i] = '-';
+    message.Dump[i + 1] = '\n';
+    message.ExtraDataLen = i + 4;
+    Serial.write((byte *)&message, i + 9);
 }
 
 void FiKnightSerialDebugger::ExecuteSerialDebugCommand(FiKnight *machine, DebugMessage *message)
@@ -113,33 +118,63 @@ void FiKnightSerialDebugger::ExecuteSerialDebugCommand(FiKnight *machine, DebugM
     switch (message->Command)
     {
     case pause:
-        Serial.println("#cmd pause");
+        // Serial.println("#cmd pause");
         machine->running = false;
         break;
     case resume:
-        Serial.println("#cmd resume");
+        // Serial.println("#cmd resume");
         machine->running = true;
         break;
     case current_execution_status:
-        Serial.println("#cmd get run/pause");
+        // Serial.println("#cmd get run/pause");
         SendCurrentExecutionStatus(message->ID, machine);
         break;
     case current_state:
-        Serial.println("#cmd get state");
+        // Serial.println("#cmd get state");
         SendCurrentState(message->ID, machine);
         break;
     case set_state:
-        Serial.println("#cmd set state");
+        // Serial.println("#cmd set state");
         machine->SetCurrentState(this->SetStateHandler(((GetSetStateMessage *)message)->StateID));
         break;
     case step:
-        Serial.println("#cmd step");
+        // Serial.println("#cmd step");
         machine->step = true;
         break;
     case dump_memory:
-        Serial.println("#cmd dump");
+        // Serial.println("#cmd dump");
         if ((message)->ExtraDataLen == 4)
             this->ReadMemory((DumpMemoryMessage *)message);
+        break;
+    case read_IO:
+        // Serial.println("#cmd read IO");
+        SendIoState(message->ID);
+        break;
     };
+}
+#include "ports.h"
+void FiKnightSerialDebugger::SendIoState(byte ID)
+{
+    ReadIOMessage message =
+    {
+        ID,
+        read_IO,
+        12,
+        PORTA_,
+        PORTB_,
+        PORTC_,
+        PORTD_,
+        PINA_,
+        PINB_,
+        PINC_,
+        PIND_,
+        DDRA_,
+        DDRB_,
+        DDRC_,
+        DDRD_,
+        '-',
+        '\n'
+    };
+    Serial.write((byte*) & message,sizeof(ReadIOMessage));    
 }
 #endif
