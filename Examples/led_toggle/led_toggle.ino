@@ -16,6 +16,14 @@
 ///     are received should be rewritten, unless no debugger was used
 ///     and the serial data are already read directly
 
+
+/// State 1 and 2 share the same function that toggles LED_BUILTIN
+/// State 4 is accessed only with set state from debugger and sets
+/// State 4 toggles PIN 2 and sets next state as State 1
+/// In the json file, State 1 and 2 are named LED OFF and LED ON resp.,
+/// so after executing State 4 those names get switched
+
+
 #include <fiKnight.h>
 #include <fiKnightSerialDebugger.h>
 
@@ -23,6 +31,7 @@
 
 // define functions
 State *StateFunction();
+State * FourthStateFunction();
 bool AlwaysTrue(State *nextstate);
 State *OnErrorCallback(State *previousstate);
 State *SetStateHandler(int ID);
@@ -31,6 +40,7 @@ void SerialDataReceivedHandler(int size, byte *data);
 // define machine objects
 State first = State(StateFunction, 1);
 State second = State(StateFunction, 2);
+State fourth = State(FourthStateFunction,4);
 
 // Reading serial data directly disturbs the functioning of FiKnightSerialDebugger
 #ifdef USE_PRODUCTION_CONFIG
@@ -74,6 +84,13 @@ State *StateFunction()
     }
     return SetStateHandler(machine.CurrentStateID());
 }
+
+State * FourthStateFunction()
+{
+    TogglePin2();
+    return SetStateHandler(1);
+}
+
 bool AlwaysTrue(State *nextstate)
 {
     return true;
@@ -88,15 +105,22 @@ State *SetStateHandler(int ID)
 {
     if (ID == 2)
         return &second;
+    else if (ID == 4)
+        return &fourth;
     else
         return &first;
+}
+
+void TogglePin2()
+{
+    Serial.println("# Toggling Pin 2");
+    digitalWrite(2, 1 - digitalRead(2));
 }
 
 void SerialDataReceivedHandler(int size, byte *data)
 {
     if (size > 0 && data[0] == 'T')
     {
-        Serial.println("# Toggling Pin 2");
-        digitalWrite(2, 1 - digitalRead(2));
+        TogglePin2();
     }
 }

@@ -20,14 +20,14 @@ FiKnightSerialDebugger::FiKnightSerialDebugger(void (*SerialReceivedHandler)(int
 }
 
 #if defined(INCLUDE_DEBUG_FUNCTION) || defined(EXECUTE_DEBUG_COMMANDS)
-FiKnightSerialDebugger::FiKnightSerialDebugger(State *(*SetStateHandler)(byte ID))
+FiKnightSerialDebugger::FiKnightSerialDebugger(State *(*SetStateHandler)(int stateID))
 {
     this->SetStateHandler = SetStateHandler;
 }
 
-FiKnightSerialDebugger::FiKnightSerialDebugger(State *(*SetStateHandler)(byte ID), void (*SerialReceivedHandler)(int size, byte *data))
+FiKnightSerialDebugger::FiKnightSerialDebugger(State *(*SetStateHandler)(int stateID), void (*SerialReceivedHandler)(int size, byte *data))
 {
-    this->SerialReceivedHandler = SerialReceivedHandler;
+    this->SetStateHandler = SetStateHandler;
     this->SetSerialReceivedHandler(SerialReceivedHandler);
 }
 #endif
@@ -70,13 +70,13 @@ void FiKnightSerialDebugger::SetSerialReceivedHandler(void (*SerialReceivedHandl
 }
 
 #if defined(INCLUDE_DEBUG_FUNCTION) || defined(EXECUTE_DEBUG_COMMANDS) || defined(NOTIFY_ON_STATE_CHANGE)
-void FiKnightSerialDebugger::SendCurrentState(byte ID, FiKnight *machine)
+void FiKnightSerialDebugger::SendCurrentState(byte messageID, FiKnight *machine)
 {
     GetSetStateMessage message = {
-        ID,
+        messageID,
         current_state,
         2,
-        machine->CurrentStateID(),
+        (int) machine->CurrentStateID(),
         '-',
         '\n',
     };
@@ -86,9 +86,9 @@ void FiKnightSerialDebugger::SendCurrentState(byte ID, FiKnight *machine)
 
 #if defined(INCLUDE_DEBUG_FUNCTION) || defined(EXECUTE_DEBUG_COMMANDS)
 
-void FiKnightSerialDebugger::SendCurrentExecutionStatus(byte ID, FiKnight *machine)
+void FiKnightSerialDebugger::SendCurrentExecutionStatus(byte messageID, FiKnight *machine)
 {
-    DebugMessage message = {ID, current_execution_status, 1, machine->running, '-', '\n'};
+    DebugMessage message = {messageID, current_execution_status, 1, machine->running, '-', '\n'};
     Serial.write((byte *)&message, 6);
 }
 void FiKnightSerialDebugger::ReadMemory(DumpMemoryMessage *msg)
@@ -135,6 +135,7 @@ void FiKnightSerialDebugger::ExecuteSerialDebugCommand(FiKnight *machine, DebugM
         break;
     case set_state:
         // Serial.println("#cmd set state");
+        // Serial.println(((GetSetStateMessage *)message)->StateID);
         machine->SetCurrentState(this->SetStateHandler(((GetSetStateMessage *)message)->StateID));
         break;
     case step:
@@ -153,11 +154,11 @@ void FiKnightSerialDebugger::ExecuteSerialDebugCommand(FiKnight *machine, DebugM
     };
 }
 #include "ports.h"
-void FiKnightSerialDebugger::SendIoState(byte ID)
+void FiKnightSerialDebugger::SendIoState(byte messageID)
 {
     ReadIOMessage message =
     {
-        ID,
+        messageID,
         read_IO,
         12,
         PORTA_,

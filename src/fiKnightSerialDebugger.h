@@ -83,9 +83,9 @@ class FiKnightSerialDebugger
     long int now;
     void (*SerialReceivedHandler)(int size, byte *data);
     #if defined(INCLUDE_DEBUG_FUNCTION) || defined(EXECUTE_DEBUG_COMMANDS)
-    State *(*SetStateHandler)(byte ID);
+    State *(*SetStateHandler)(int stateID);
     void ReadMemory(DumpMemoryMessage *message);
-    void SendIoState(byte ID);
+    void SendIoState(byte messageID);
     #endif
 
   public:
@@ -93,13 +93,13 @@ class FiKnightSerialDebugger
     FiKnightSerialDebugger(void (*SerialReceivedHandler)(int size, byte *data));
     
     #if defined(INCLUDE_DEBUG_FUNCTION) || defined(EXECUTE_DEBUG_COMMANDS) || defined(NOTIFY_ON_STATE_CHANGE)
-    void SendCurrentState(byte ID, FiKnight *machine);
+    void SendCurrentState(byte messageID, FiKnight *machine);
     #endif
 
     #if defined(INCLUDE_DEBUG_FUNCTION) || defined(EXECUTE_DEBUG_COMMANDS)
-    FiKnightSerialDebugger(State *(*SetStateHandler)(byte ID));
-    FiKnightSerialDebugger(State *(*SetStateHandler)(byte ID), void (*SerialReceivedHandler)(int size, byte *data));
-    void SendCurrentExecutionStatus(byte ID, FiKnight *machine);
+    FiKnightSerialDebugger(State *(*SetStateHandler)(int stateID));
+    FiKnightSerialDebugger(State *(*SetStateHandler)(int stateID), void (*SerialReceivedHandler)(int size, byte *data));
+    void SendCurrentExecutionStatus(byte messageID, FiKnight *machine);
     void ExecuteSerialDebugCommand(FiKnight *machine, DebugMessage *message);
     #endif
 
